@@ -15,7 +15,6 @@ import android.support.annotation.Nullable;
 import android.support.v4.view.ViewPager;
 import android.support.v7.widget.AppCompatTextView;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.util.SparseArray;
 import android.util.TypedValue;
 import android.view.Gravity;
@@ -69,6 +68,7 @@ import java.util.List;
 public class MaterialCalendarView extends ViewGroup {
 
     public static final int INVALID_TILE_DIMENSION = -10;
+    public static final int DEFAULT_GAP_DIMENSION = 0;
 
     /**
      * {@linkplain IntDef} annotation for selection mode.
@@ -233,6 +233,9 @@ public class MaterialCalendarView extends ViewGroup {
     private Drawable rightArrowMask;
     private int tileHeight = INVALID_TILE_DIMENSION;
     private int tileWidth = INVALID_TILE_DIMENSION;
+    // verticalGap horizontalGap add @date 2018-7-10 @author fancylou
+    private int verticalGap = DEFAULT_GAP_DIMENSION;
+    private int horizontalGap = DEFAULT_GAP_DIMENSION;
     @SelectionMode
     private int selectionMode = SELECTION_MODE_SINGLE;
     private boolean allowClickDaysOutsideCurrentMonth = true;
@@ -323,6 +326,16 @@ public class MaterialCalendarView extends ViewGroup {
             if (tileHeight > INVALID_TILE_DIMENSION) {
                 setTileHeight(tileHeight);
             }
+
+            final int verticalGap = a.getLayoutDimension(R.styleable.MaterialCalendarView_mcv_vertical_gap, DEFAULT_GAP_DIMENSION);
+            if (verticalGap > DEFAULT_GAP_DIMENSION) {
+                setVerticalGap(verticalGap);
+            }
+            final int horizontalGap = a.getLayoutDimension(R.styleable.MaterialCalendarView_mcv_horizontal_gap, DEFAULT_GAP_DIMENSION);
+            if (horizontalGap > DEFAULT_GAP_DIMENSION) {
+                setHorizontalGap(horizontalGap);
+            }
+
 
             setArrowColor(a.getColor(
                     R.styleable.MaterialCalendarView_mcv_arrowColor,
@@ -526,6 +539,25 @@ public class MaterialCalendarView extends ViewGroup {
     @Deprecated
     public int getTileSize() {
         return Math.max(tileHeight, tileWidth);
+    }
+
+
+    public void setVerticalGap(int gap) {
+        this.verticalGap = gap;
+        requestLayout();
+    }
+
+    public void setHorizontalGap(int gap) {
+        this.horizontalGap = gap;
+        requestLayout();
+    }
+
+    public int getVerticalGap() {
+        return verticalGap;
+    }
+
+    public int getHorizontalGap() {
+        return horizontalGap;
     }
 
     /**
@@ -1625,13 +1657,14 @@ public class MaterialCalendarView extends ViewGroup {
         final int specHeightSize = MeasureSpec.getSize(heightMeasureSpec);
         final int specHeightMode = MeasureSpec.getMode(heightMeasureSpec);
 
-        //We need to disregard padding for a while. This will be added back later
-        final int desiredWidth = specWidthSize - getPaddingLeft() - getPaddingRight();
-        final int desiredHeight = specHeightSize - getPaddingTop() - getPaddingBottom();
-
         final int weekCount = getWeekCountBasedOnMode();
-
         final int viewTileHeight = getTopbarVisible() ? (weekCount + 1) : weekCount;
+        final int horizontalGapAll = getHorizontalGap() * (DEFAULT_DAYS_IN_WEEK - 1);
+        final int verticalGapAll = getVerticalGap() * (weekCount - 1);
+        //We need to disregard padding for a while. This will be added back later
+        final int desiredWidth = specWidthSize - horizontalGapAll - getPaddingLeft() - getPaddingRight();
+        final int desiredHeight = specHeightSize - verticalGapAll - getPaddingTop() - getPaddingBottom();
+
 
         //Calculate independent tile sizes for later
         int desiredTileWidth = desiredWidth / DEFAULT_DAYS_IN_WEEK;
@@ -1686,6 +1719,7 @@ public class MaterialCalendarView extends ViewGroup {
         int measuredWidth = measureTileWidth * DEFAULT_DAYS_IN_WEEK;
         int measuredHeight = measureTileHeight * viewTileHeight;
 
+
         //Put padding back in from when we took it away
         measuredWidth += getPaddingLeft() + getPaddingRight();
         measuredHeight += getPaddingTop() + getPaddingBottom();
@@ -1693,8 +1727,8 @@ public class MaterialCalendarView extends ViewGroup {
         //Contract fulfilled, setting out measurements
         setMeasuredDimension(
                 //We clamp inline because we want to use un-clamped versions on the children
-                clampSize(measuredWidth, widthMeasureSpec),
-                clampSize(measuredHeight, heightMeasureSpec)
+                clampSize(measuredWidth + horizontalGapAll, widthMeasureSpec),
+                clampSize(measuredHeight + verticalGapAll, heightMeasureSpec)
         );
 
         int count = getChildCount();
@@ -1705,12 +1739,12 @@ public class MaterialCalendarView extends ViewGroup {
             LayoutParams p = (LayoutParams) child.getLayoutParams();
 
             int childWidthMeasureSpec = MeasureSpec.makeMeasureSpec(
-                    DEFAULT_DAYS_IN_WEEK * measureTileWidth,
+                    DEFAULT_DAYS_IN_WEEK * measureTileWidth + horizontalGapAll,
                     MeasureSpec.EXACTLY
             );
 
             int childHeightMeasureSpec = MeasureSpec.makeMeasureSpec(
-                    p.height * measureTileHeight,
+                    p.height * measureTileHeight + (getVerticalGap() * (p.height - 1)),
                     MeasureSpec.EXACTLY
             );
 

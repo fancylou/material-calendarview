@@ -39,6 +39,8 @@
         <attr name="mcv_tileWidth" format="dimension" >
             <enum name="match_parent" value="-1" />
         </attr>
+        <attr name="mcv_vertical_gap" format="dimension" />
+        <attr name="mcv_horizontal_gap" format="dimension" />
 
         <attr name="mcv_firstDayOfWeek" format="enum">
             <enum name="sunday" value="1" />

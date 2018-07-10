@@ -249,8 +249,11 @@ abstract class CalendarPagerView extends ViewGroup implements View.OnClickListen
         }
 
         //The spec width should be a correct multiple
-        final int measureTileWidth = specWidthSize / DEFAULT_DAYS_IN_WEEK;
-        final int measureTileHeight = specHeightSize / getRows();
+        final int horizontalGapAll = mcv.getHorizontalGap() * (DEFAULT_DAYS_IN_WEEK - 1);
+        final int verticalGapAll = mcv.getVerticalGap() * (getRows() - 1);
+
+        final int measureTileWidth = (specWidthSize - horizontalGapAll) / DEFAULT_DAYS_IN_WEEK;
+        final int measureTileHeight = (specHeightSize - verticalGapAll) / getRows();
 
         //Just use the spec sizes
         setMeasuredDimension(specWidthSize, specHeightSize);
@@ -282,6 +285,7 @@ abstract class CalendarPagerView extends ViewGroup implements View.OnClickListen
     protected abstract int getRows();
 
     /**
+     * 2018-7-10 add verticalGap and horizontalGap
      * {@inheritDoc}
      */
     @Override
@@ -301,12 +305,12 @@ abstract class CalendarPagerView extends ViewGroup implements View.OnClickListen
 
             child.layout(childLeft, childTop, childLeft + width, childTop + height);
 
-            childLeft += width;
+            childLeft += width + mcv.getHorizontalGap();
 
             //We should warp every so many children
             if (i % DEFAULT_DAYS_IN_WEEK == (DEFAULT_DAYS_IN_WEEK - 1)) {
                 childLeft = parentLeft;
-                childTop += height;
+                childTop += height + mcv.getVerticalGap();
             }
 
         }
